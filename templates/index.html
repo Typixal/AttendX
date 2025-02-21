@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendX - Face Recognition</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container text-center mt-5">
+        <h2>AttendX - Face Recognition Attendance</h2>
+        <button id="start-btn" class="btn btn-success mt-3">Start Recognition</button>
+        <button id="stop-btn" class="btn btn-danger mt-3">Stop Recognition</button>
+
+        <h3 class="mt-5">Live Camera Feed</h3>
+        <img id="video-feed" src="/video_feed" class="border rounded mt-3" width="60%">
+
+        <h3 class="mt-5">Attendance Log</h3>
+        <button id="refresh-log" class="btn btn-primary">Refresh Log</button>
+        <button id="clear-attendance" class="btn btn-warning">Clear Attendance</button>
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-table">
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="mt-5">Capture Face</h3>
+<input type="text" id="name-input" class="form-control mt-2" placeholder="Enter name">
+<button id="capture-btn" class="btn btn-warning mt-2">Capture & Save</button>
+
+<script>
+    document.getElementById('capture-btn').addEventListener('click', function() {
+        let name = document.getElementById('name-input').value.trim();
+
+        if (!name) {
+            alert("Please enter a name before capturing!");
+            return;
+        }
+
+        let formData = new FormData();
+        formData.append("name", name);
+
+        fetch('/capture', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+
+
+    <script>
+        document.getElementById('refresh-log').addEventListener('click', function() {
+            fetch('/attendance_log')
+            .then(response => response.json())
+            .then(data => {
+                let tableBody = document.getElementById('attendance-table');
+                tableBody.innerHTML = '';
+                data.forEach(row => {
+                    let newRow = `<tr><td>${row.Name}</td><td>${row.Time}</td></tr>`;
+                    tableBody.innerHTML += newRow;
+                });
+            });
+        });
+
+        document.getElementById('start-btn').addEventListener('click', function() {
+            fetch('/start_recognition', { method: 'POST' });
+        });
+
+        document.getElementById('stop-btn').addEventListener('click', function() {
+            fetch('/stop_recognition', { method: 'POST' });
+        });
+
+        document.getElementById('clear-attendance').addEventListener('click', function() {
+            fetch('/clear_attendance', { method: 'POST' })
+            .then(response => response.text())
+            .then(message => {
+                alert(message);
+                document.getElementById('attendance-table').innerHTML = ''; // Clear frontend table
+            });
+        });
+    </script>
+</body>
+</html>
